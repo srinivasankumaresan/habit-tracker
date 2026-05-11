@@ -1,0 +1,95 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 2px solid transparent;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.card.done {
+  border-color: var(--accent-light);
+  background: linear-gradient(135deg, #fff 60%, var(--accent-light));
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.checkbox:hover {
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+.checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.done .name {
+  color: var(--text-secondary);
+  text-decoration: line-through;
+  text-decoration-color: var(--accent);
+}
+
+.streak {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--streak);
+  letter-spacing: 0.01em;
+}
+
+.delete {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--border);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.delete:hover {
+  color: var(--danger);
+  background: #fff0f0;
+}
