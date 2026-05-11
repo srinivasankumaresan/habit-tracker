@@ -4,6 +4,14 @@ import styles from './StatsPage.module.css'
 const LAST_7 = lastNDays(7)
 const LAST_30 = lastNDays(30)
 
+function formatTime(minutes) {
+  if (!minutes) return '—'
+  if (minutes < 60) return `${minutes}m`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m ? `${h}h ${m}m` : `${h}h`
+}
+
 export default function StatsPage({ habits }) {
   if (habits.length === 0) {
     return (
@@ -15,15 +23,18 @@ export default function StatsPage({ habits }) {
   }
 
   const todayStr = today()
-  const todayDone = habits.filter(h => h.completions.includes(todayStr)).length
+  const todayDone = habits.filter(h => h.completions.some(c => c.date === todayStr)).length
   const todayRate = Math.round((todayDone / habits.length) * 100)
 
   const overallRate30 = Math.round(
-    habits.reduce((sum, h) => sum + calcCompletionRate(h.completions, LAST_30), 0) / habits.length
+    habits.reduce((sum, h) => {
+      const dates = h.completions.map(c => c.date)
+      return sum + calcCompletionRate(dates, LAST_30)
+    }, 0) / habits.length
   )
 
-  const bestStreak = Math.max(...habits.map(h => calcLongestStreak(h.completions)), 0)
-  const totalCompletions = habits.reduce((sum, h) => sum + h.completions.length, 0)
+  const bestStreak = Math.max(...habits.map(h => calcLongestStreak(h.completions.map(c => c.date))), 0)
+  const totalMinutes = habits.reduce((sum, h) => sum + h.completions.reduce((s, c) => s + (c.duration || 0), 0), 0)
 
   return (
     <div className={styles.page}>
@@ -31,7 +42,7 @@ export default function StatsPage({ habits }) {
         <StatCard label="Today" value={`${todayDone}/${habits.length}`} sub={`${todayRate}% done`} accent />
         <StatCard label="30-day rate" value={`${overallRate30}%`} sub="avg across habits" />
         <StatCard label="Best streak" value={`${bestStreak}d`} sub="all time" />
-        <StatCard label="Total" value={totalCompletions} sub="completions" />
+        <StatCard label="Time logged" value={formatTime(totalMinutes)} sub="total across all habits" />
       </div>
 
       <h2 className={styles.sectionTitle}>Per Habit</h2>
@@ -56,10 +67,14 @@ function StatCard({ label, value, sub, accent }) {
 }
 
 function HabitStat({ habit }) {
-  const streak = calcStreak(habit.completions)
-  const longest = calcLongestStreak(habit.completions)
-  const rate7 = calcCompletionRate(habit.completions, LAST_7)
-  const rate30 = calcCompletionRate(habit.completions, LAST_30)
+  const dates = habit.completions.map(c => c.date)
+  const streak = calcStreak(dates)
+  const longest = calcLongestStreak(dates)
+  const rate7 = calcCompletionRate(dates, LAST_7)
+  const rate30 = calcCompletionRate(dates, LAST_30)
+  const totalMinutes = habit.completions.reduce((s, c) => s + (c.duration || 0), 0)
+  const sessionsWithTime = habit.completions.filter(c => c.duration > 0).length
+  const avgMinutes = sessionsWithTime ? Math.round(totalMinutes / sessionsWithTime) : 0
 
   return (
     <div className={styles.habitRow}>
@@ -76,7 +91,9 @@ function HabitStat({ habit }) {
       <div className={styles.habitNums}>
         <span>Current streak <strong>{streak}d</strong></span>
         <span>Longest <strong>{longest}d</strong></span>
-        <span>Total <strong>{habit.completions.length}</strong></span>
+        <span>Sessions <strong>{habit.completions.length}</strong></span>
+        {totalMinutes > 0 && <span>Total time <strong>{formatTime(totalMinutes)}</strong></span>}
+        {avgMinutes > 0 && <span>Avg session <strong>{formatTime(avgMinutes)}</strong></span>}
       </div>
 
       <MiniCalendar completions={habit.completions} />
@@ -97,7 +114,7 @@ function RateBar({ label, rate }) {
 }
 
 function MiniCalendar({ completions }) {
-  const set = new Set(completions)
+  const byDate = Object.fromEntries(completions.map(c => [c.date, c]))
   const days = lastNDays(28)
   const todayStr = today()
 
@@ -110,13 +127,16 @@ function MiniCalendar({ completions }) {
     <div className={styles.miniCal}>
       {weeks.map((week, wi) => (
         <div key={wi} className={styles.miniWeek}>
-          {week.map(date => (
-            <div
-              key={date}
-              className={`${styles.miniDot} ${set.has(date) ? styles.miniDotDone : ''} ${date === todayStr ? styles.miniDotToday : ''}`}
-              title={date}
-            />
-          ))}
+          {week.map(date => {
+            const entry = byDate[date]
+            return (
+              <div
+                key={date}
+                className={`${styles.miniDot} ${entry ? styles.miniDotDone : ''} ${date === todayStr ? styles.miniDotToday : ''}`}
+                title={entry ? `${entry.time}${entry.duration ? ' · ' + entry.duration + 'min' : ''}` : date}
+              />
+            )
+          })}
         </div>
       ))}
     </div>

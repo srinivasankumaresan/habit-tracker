@@ -1,63 +1,106 @@
+import { useState } from 'react'
 import { today, calcStreak, lastNDays } from '../utils'
+import LogModal from './LogModal'
 import styles from './HabitCard.module.css'
 
 const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 const WEEK = lastNDays(7)
 
-export default function HabitCard({ habit, onToggle, onDelete }) {
+export default function HabitCard({ habit, onLog, onRemove, onDelete }) {
+  const [modal, setModal] = useState(null) // { date, existing: entry|null }
+
   const todayStr = today()
-  const done = habit.completions.includes(todayStr)
-  const streak = calcStreak(habit.completions)
-  const set = new Set(habit.completions)
+  const dates = habit.completions.map(c => c.date)
+  const done = dates.includes(todayStr)
+  const streak = calcStreak(dates)
+  const byDate = Object.fromEntries(habit.completions.map(c => [c.date, c]))
+
+  function openModal(date) {
+    setModal({ date, existing: byDate[date] ?? null })
+  }
+
+  function handleCheckboxClick() {
+    if (done) {
+      onRemove(habit.id, todayStr)
+    } else {
+      openModal(todayStr)
+    }
+  }
+
+  function handleSave(entry) {
+    onLog(habit.id, entry)
+    setModal(null)
+  }
+
+  function handleRemove(date) {
+    onRemove(habit.id, date)
+    setModal(null)
+  }
 
   return (
-    <div className={`${styles.card} ${done ? styles.done : ''}`}>
-      <div className={styles.top}>
-        <button
-          className={`${styles.checkbox} ${done ? styles.checked : ''}`}
-          onClick={() => onToggle(habit.id)}
-          aria-label={done ? 'Mark incomplete' : 'Mark complete'}
-        >
-          {done && <CheckIcon />}
-        </button>
+    <>
+      <div className={`${styles.card} ${done ? styles.done : ''}`}>
+        <div className={styles.top}>
+          <button
+            className={`${styles.checkbox} ${done ? styles.checked : ''}`}
+            onClick={handleCheckboxClick}
+            aria-label={done ? 'Mark incomplete' : 'Log today'}
+          >
+            {done && <CheckIcon />}
+          </button>
 
-        <div className={styles.info}>
-          <span className={styles.name}>{habit.name}</span>
-          {streak > 0 && (
-            <span className={styles.streak} title={`${streak}-day streak`}>
-              🔥 {streak} day{streak !== 1 ? 's' : ''}
-            </span>
-          )}
+          <div className={styles.info}>
+            <span className={styles.name}>{habit.name}</span>
+            {streak > 0 && (
+              <span className={styles.streak} title={`${streak}-day streak`}>
+                🔥 {streak} day{streak !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          <button
+            className={styles.delete}
+            onClick={() => onDelete(habit.id)}
+            aria-label="Delete habit"
+          >
+            <TrashIcon />
+          </button>
         </div>
 
-        <button
-          className={styles.delete}
-          onClick={() => onDelete(habit.id)}
-          aria-label="Delete habit"
-        >
-          <TrashIcon />
-        </button>
+        <div className={styles.calendar}>
+          {WEEK.map((date) => {
+            const dayOfWeek = new Date(date + 'T00:00:00').getDay()
+            const entry = byDate[date]
+            const completed = Boolean(entry)
+            const isToday = date === todayStr
+            return (
+              <div key={date} className={styles.dayCol}>
+                <span className={styles.dayLabel}>{DAY_LABELS[dayOfWeek]}</span>
+                <button
+                  className={`${styles.dot} ${completed ? styles.dotDone : ''} ${isToday ? styles.dotToday : ''}`}
+                  onClick={() => openModal(date)}
+                  aria-label={`${completed ? 'Edit' : 'Log'} ${date}`}
+                  title={entry ? `${entry.duration ? entry.duration + 'min · ' : ''}${entry.time}` : date}
+                />
+                {entry?.duration > 0 && (
+                  <span className={styles.dotDuration}>{entry.duration}m</span>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      <div className={styles.calendar}>
-        {WEEK.map((date) => {
-          const dayOfWeek = new Date(date + 'T00:00:00').getDay()
-          const completed = set.has(date)
-          const isToday = date === todayStr
-          return (
-            <div key={date} className={styles.dayCol}>
-              <span className={styles.dayLabel}>{DAY_LABELS[dayOfWeek]}</span>
-              <button
-                className={`${styles.dot} ${completed ? styles.dotDone : ''} ${isToday ? styles.dotToday : ''}`}
-                onClick={() => onToggle(habit.id, date)}
-                aria-label={`${completed ? 'Unmark' : 'Mark'} ${date}`}
-                title={date}
-              />
-            </div>
-          )
-        })}
-      </div>
-    </div>
+      {modal && (
+        <LogModal
+          date={modal.date}
+          existing={modal.existing}
+          onSave={handleSave}
+          onRemove={handleRemove}
+          onCancel={() => setModal(null)}
+        />
+      )}
+    </>
   )
 }
 

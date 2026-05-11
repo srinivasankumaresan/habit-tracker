@@ -148,3 +148,10 @@
 .dot.dotDone.dotToday {
   box-shadow: 0 0 0 2px var(--accent-dark);
 }
+
+.dotDuration {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}

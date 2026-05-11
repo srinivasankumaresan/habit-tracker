@@ -8,9 +8,18 @@ import styles from './App.module.css'
 const STORAGE_KEY = 'habit-tracker-v1'
 const THEME_KEY = 'habit-tracker-theme'
 
+function migrate(habits) {
+  return habits.map(h => ({
+    ...h,
+    completions: h.completions.map(c =>
+      typeof c === 'string' ? { date: c, time: '00:00', duration: 0 } : c
+    ),
+  }))
+}
+
 function load() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []
+    return migrate(JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [])
   } catch {
     return []
   }
@@ -34,16 +43,18 @@ export default function App() {
     setHabits(prev => [...prev, { id: uid(), name, createdAt: today(), completions: [] }])
   }
 
-  function toggleHabit(id, date = today()) {
+  function logHabit(id, entry) {
     setHabits(prev => prev.map(h => {
       if (h.id !== id) return h
-      const done = h.completions.includes(date)
-      return {
-        ...h,
-        completions: done
-          ? h.completions.filter(d => d !== date)
-          : [...h.completions, date],
-      }
+      const rest = h.completions.filter(c => c.date !== entry.date)
+      return { ...h, completions: [...rest, entry] }
+    }))
+  }
+
+  function removeLog(id, date) {
+    setHabits(prev => prev.map(h => {
+      if (h.id !== id) return h
+      return { ...h, completions: h.completions.filter(c => c.date !== date) }
     }))
   }
 
@@ -51,7 +62,8 @@ export default function App() {
     setHabits(prev => prev.filter(h => h.id !== id))
   }
 
-  const doneCount = habits.filter(h => h.completions.includes(today())).length
+  const todayStr = today()
+  const doneCount = habits.filter(h => h.completions.some(c => c.date === todayStr)).length
 
   return (
     <div className={styles.page}>
@@ -114,7 +126,8 @@ export default function App() {
                 <HabitCard
                   key={habit.id}
                   habit={habit}
-                  onToggle={toggleHabit}
+                  onLog={logHabit}
+                  onRemove={removeLog}
                   onDelete={deleteHabit}
                 />
               ))}
