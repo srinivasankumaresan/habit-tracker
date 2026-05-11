@@ -29,4 +29,20 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+[data-theme="dark"] {
+  --bg: #0f0f13;
+  --surface: #1c1c24;
+  --surface-hover: #26262f;
+  --border: #2e2e3a;
+  --text-primary: #e8e8f0;
+  --text-secondary: #8888a0;
+  --accent: #7c74ff;
+  --accent-light: #2a2548;
+  --accent-dark: #6c63ff;
+  --danger: #ff6b6b;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
 }
