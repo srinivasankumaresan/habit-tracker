@@ -5,9 +5,11 @@ import styles from './HabitCard.module.css'
 
 const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 const WEEK = lastNDays(7)
+const CHEERS = ['👍', '🎉', '⭐', '💪', '✨', '🏆', '🙌']
 
 export default function HabitCard({ habit, onLog, onRemove, onDelete }) {
-  const [modal, setModal] = useState(null) // { date, existing: entry|null }
+  const [modal, setModal] = useState(null)
+  const [cheer, setCheer] = useState(null)
 
   const todayStr = today()
   const dates = habit.completions.map(c => c.date)
@@ -27,9 +29,17 @@ export default function HabitCard({ habit, onLog, onRemove, onDelete }) {
     }
   }
 
+  function triggerCheer() {
+    const emoji = CHEERS[Math.floor(Math.random() * CHEERS.length)]
+    setCheer({ emoji, key: Date.now() })
+    setTimeout(() => setCheer(null), 1100)
+  }
+
   function handleSave(entry) {
+    const isNew = !byDate[entry.date]
     onLog(habit.id, entry)
     setModal(null)
+    if (isNew) triggerCheer()
   }
 
   function handleRemove(date) {
@@ -40,6 +50,12 @@ export default function HabitCard({ habit, onLog, onRemove, onDelete }) {
   return (
     <>
       <div className={`${styles.card} ${done ? styles.done : ''}`}>
+        {cheer && (
+          <span key={cheer.key} className={styles.cheer}>
+            {cheer.emoji}
+          </span>
+        )}
+
         <div className={styles.top}>
           <button
             className={`${styles.checkbox} ${done ? styles.checked : ''}`}

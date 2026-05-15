@@ -45,18 +45,76 @@
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.durationRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unit {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .input {
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--text-primary);
   background: var(--bg);
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
 }
 
 .input:focus {
@@ -66,6 +124,7 @@
 .actions {
   display: flex;
   gap: 10px;
+  margin-top: 2px;
 }
 
 .add {

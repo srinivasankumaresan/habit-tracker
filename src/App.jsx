@@ -39,8 +39,9 @@ export default function App() {
     localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light')
   }, [dark])
 
-  function addHabit(name) {
-    setHabits(prev => [...prev, { id: uid(), name, createdAt: today(), completions: [] }])
+  function addHabit(name, firstEntry) {
+    const completions = firstEntry ? [firstEntry] : []
+    setHabits(prev => [...prev, { id: uid(), name, createdAt: today(), completions }])
   }
 
   function logHabit(id, entry) {
